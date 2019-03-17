@@ -1,4 +1,4 @@
-# Key Functions (A better copy of make-it-searchable)
+# Key Functions (A better copy of [make-it-searchable](https://github.com/abdulmoizhussain/make-it-searchable))
 ### Removes all special characters from the text in Clipboard (which makes it google searchable) and saves it back into Clipboard.
 
 ## Executables are in: [Executables/](https://github.com/abdulmoizhussain/key-functions/tree/master/Executables)
