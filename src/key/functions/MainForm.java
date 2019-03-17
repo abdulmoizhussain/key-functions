@@ -1,23 +1,16 @@
 package key.functions;
 
 import java.awt.AWTException;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.MouseAdapter;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.embed.swing.JFXPanel;
-import javafx.scene.input.MouseEvent;
-import javax.swing.JFrame;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -162,7 +155,7 @@ public class MainForm extends javax.swing.JFrame implements NativeKeyListener {
       // is "C" key released ? then check is Lctrl/Rctrl pressed ?
       String clip = getClipboard();
       if (clip.trim().indexOf("mis ") == 0) { // must be in start
-        clip = clip.replaceAll("[^a-zA-Z0-9]+", " ");
+        clip = clip.replaceAll("[^a-zA-Z0-9]+", " ").trim();
         clip = clip.replaceFirst("mis ", "");
         setClipboard(clip);
         _text = clip + "\n" + _text;
