@@ -9,13 +9,13 @@
 ### Execute ***`key-functions.exe`*** OR ***`key-functions.jar`***
 
 ### `Set Cursor position (0, 0) while typing`: ###
-* Adding hide mouse-pointer while typing is a tricking functionality, that's why setting cursor's position to (0, 0) coordinates.
+* Adding ***hide mouse-pointer while typing*** is a tricky functionality, that's why setting cursor's position to (0, 0) coordinates while typing.
 
 ### `Clean special characters from clipboard`: ###
 * E.g. text: `https://github.com/key-functions/edit/master/README.md`
 * Prepend the text with "`mis `" like below and select it:
 * !["mis https://github.com/abdulmoizhussain/key-functions"](https://github.com/abdulmoizhussain/key-functions/blob/master/example.png)
-* To make it google searchable, copy it from the keyboard shortcut `ctrl + c`:
+* To make the text easily searchable, copy it from the keyboard shortcut `ctrl + c`:
 * Now paste it somewhere and it should be formatted like this: `https github com key functions edit master README md`
 
 &nbsp;
