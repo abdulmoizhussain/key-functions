@@ -18,14 +18,14 @@ import org.jnativehook.keyboard.NativeKeyListener;
 
 public class MainForm extends javax.swing.JFrame implements NativeKeyListener {
 
-  private int key1, key2, key3, key_pressed;
+  private int key1, key2, key3, key4, key5, key_pressed;
   private String _text;
-  private long timeKey1, timeKey2, timeKey3;
+  private long timeKey1, timeKey2, timeKey3, timeKey4, timeKey5;
   private boolean allowClip, allowCursor;
 
   public MainForm() {
     _text = "";
-    timeKey1 = timeKey2 = timeKey3 = key1 = key2 = key3 = key_pressed = 0;
+    timeKey1 = timeKey2 = timeKey3 = timeKey4 = timeKey5 = key1 = key2 = key3 = key4 = key5 = key_pressed = 0;
     initComponents();
     try {
       GlobalScreen.registerNativeHook();
@@ -158,21 +158,27 @@ public class MainForm extends javax.swing.JFrame implements NativeKeyListener {
         clip = clip.replaceAll("[^a-zA-Z0-9]+", " ").trim();
         clip = clip.replaceFirst("mis ", "");
         setClipboard(clip);
+        if (_text.contains(clip)) {
+          return 0;
+        }
         _text = clip + "\n" + _text;
         display(_text);
-        key_pressed = 0;
       }
     } else if (allowCursor && isAlphabet(KEY)) {
       key1 = key2;
       key2 = key3;
-      key3 = KEY;
-      if (key1 == key2 && key1 == key3) { // if all three keys are equal to each other
+      key3 = key4;
+      key4 = key5;
+      key5 = KEY;
+      if (key1 == key2 && key2 == key3 && key3 == key4 && key4 == key5) { // if all three keys are equal to each other
         return 0;
       }
       timeKey1 = timeKey2;
       timeKey2 = timeKey3;
-      timeKey3 = System.currentTimeMillis();
-      if (((timeKey2 - timeKey1) + (timeKey3 - timeKey2)) / 2 < 300) {
+      timeKey3 = timeKey4;
+      timeKey4 = timeKey5;
+      timeKey5 = System.currentTimeMillis();
+      if (((timeKey2 - timeKey1) + (timeKey3 - timeKey2) + (timeKey4 - timeKey3) + (timeKey5 - timeKey4)) / 4 < 300) {
         setMousePosition(0, 0);
       }
     }
