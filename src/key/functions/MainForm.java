@@ -3,14 +3,12 @@ package key.functions;
 import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.embed.swing.JFXPanel;
+import java.util.Arrays;
+import java.util.regex.Pattern;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -18,21 +16,28 @@ import org.jnativehook.keyboard.NativeKeyListener;
 
 public class MainForm extends javax.swing.JFrame implements NativeKeyListener {
 
-  private int key1, key2, key3, key4, key5, key_pressed;
+  private int key_pressed;
+  private int keys[];
+  private long keyTimes[];
+  private int key_press_count = 5;
   private String _text;
   private long timeKey1, timeKey2, timeKey3, timeKey4, timeKey5;
   private boolean allowClip, allowCursor;
 
   public MainForm() {
     _text = "";
-    timeKey1 = timeKey2 = timeKey3 = timeKey4 = timeKey5 = key1 = key2 = key3 = key4 = key5 = key_pressed = 0;
+    key_pressed = 0;
+    key_press_count = 5; // must not be smaller than 2
+    keys = new int[key_press_count];
+    keyTimes = new long[key_press_count];
+    Arrays.fill(keys, 0);
+    Arrays.fill(keyTimes, 0);
     initComponents();
     try {
       GlobalScreen.registerNativeHook();
     } catch (NativeHookException e) {
-      e.printStackTrace();
     }
-    GlobalScreen.addNativeKeyListener(this);
+    GlobalScreen.addNativeKeyListener(MainForm.this);
   }
 
   @SuppressWarnings("unchecked")
@@ -107,13 +112,7 @@ public class MainForm extends javax.swing.JFrame implements NativeKeyListener {
           break;
         }
       }
-    } catch (ClassNotFoundException ex) {
-      java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-    } catch (InstantiationException ex) {
-      java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-    } catch (IllegalAccessException ex) {
-      java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-    } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
       java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
     }
     java.awt.EventQueue.invokeLater(new Runnable() {
@@ -147,7 +146,7 @@ public class MainForm extends javax.swing.JFrame implements NativeKeyListener {
     // 162 -> Lctrl
     // 163 -> Rctrl
     perform(nke.getRawCode());
-    // this function is made to return from first if it was a copy function, cannot return from here, because this override function has void
+    // this function is written to return from first if it was a copy function, cannot return from here, because this override function has void
   }
 
   private int perform(int KEY) {
@@ -165,22 +164,44 @@ public class MainForm extends javax.swing.JFrame implements NativeKeyListener {
         display(_text);
       }
     } else if (allowCursor && isAlphabet(KEY)) {
-      key1 = key2;
-      key2 = key3;
-      key3 = key4;
-      key4 = key5;
-      key5 = KEY;
-      if (key1 == key2 && key2 == key3 && key3 == key4 && key4 == key5) { // if all three keys are equal to each other
-        return 0;
+      {
+        // match occurence of same character codes with length of keys
+        String keys_str = "";
+        for (int i = 0; i < keys.length - 1; i++) {
+          keys[i] = keys[i + 1];
+          keys_str += Integer.toString(keys[i]);
+        }
+        keys[keys.length - 1] = KEY;
+        keys_str += Integer.toString(KEY);
+//      e.g regex:  "(23){5,5}"
+//      e.g str to match: 322332332323232323
+        if (Pattern.matches("(" + Integer.toString(KEY) + "){" + keys.length + "," + keys.length + "}", keys_str)) {
+          return 0;
+        }
       }
-      timeKey1 = timeKey2;
-      timeKey2 = timeKey3;
-      timeKey3 = timeKey4;
-      timeKey4 = timeKey5;
-      timeKey5 = System.currentTimeMillis();
-      if (((timeKey2 - timeKey1) + (timeKey3 - timeKey2) + (timeKey4 - timeKey3) + (timeKey5 - timeKey4)) / 4 < 300) {
-        setMousePosition(0, 0);
+
+      for (int i = 0; i < keyTimes.length - 1; i++) {
+        keyTimes[i] = keyTimes[i + 1];
       }
+      keyTimes[keyTimes.length - 1] = System.currentTimeMillis();
+
+      {
+        long[] diff = new long[keyTimes.length - 1];
+        Arrays.fill(diff, 0);
+        for (int i = 0; i < diff.length; i++) {
+          diff[i] = keyTimes[i + 1] - keyTimes[i];
+        }
+        long sum = 0;
+        for (int i = 0; i < diff.length; i++) {
+          sum += diff[i];
+        }
+        if (sum / diff.length < 300) {
+          setMousePosition(0, 0);
+        }
+      }
+//      if (((timeKey2 - timeKey1) + (timeKey3 - timeKey2) + (timeKey4 - timeKey3) + (timeKey5 - timeKey4)) / 4 < 300) {
+//        setMousePosition(0, 0);
+//      }
     }
     return 0;
   }
@@ -199,17 +220,13 @@ public class MainForm extends javax.swing.JFrame implements NativeKeyListener {
   }
 
   private void setClipboard(String copyText) {
-    StringSelection stringSelection = new StringSelection(copyText);
-    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-    clipboard.setContents(stringSelection, null);
+    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(copyText), null);
   }
 
   private String getClipboard() {
     try {
-      new JFXPanel();
       return (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
-    } catch (UnsupportedFlavorException | IOException ex) {
-      Logger.getLogger(this.getName()).log(Level.SEVERE, null, ex);
+    } catch (UnsupportedFlavorException | IOException e) {
       return "";
     }
   }
