@@ -1,0 +1,15 @@
+Executables/
+build/
+nbbuild/
+nbdist/
+dist/
+.nb-gradle/
+
+build-impl.xml
+build.xml
+project.properties
+project.xml
+
+**/nbproject/private/
+**/nbproject/Makefile-*.mk
+**/nbproject/Package-*.bash
