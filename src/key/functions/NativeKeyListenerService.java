@@ -26,15 +26,14 @@ import org.jnativehook.keyboard.NativeKeyListener;
  */
 public class NativeKeyListenerService implements NativeKeyListener {
 
-    private int key_pressed = 0;
     private final int key_press_count = 3; // must not be smaller than 2
     private final int keys[] = new int[key_press_count];
     private final long keyTimes[] = new long[key_press_count];
-    private boolean allowClip, allowCursor;
+    private boolean allowClip, allowCursor, maintainClipboard;
     private final java.awt.TextArea clipboardTextArea;
     private Robot robot;
-    private FlavorListenerService flavorListenerService;
-    private boolean ctrl_key;
+    private final Pattern patternSpecialChars = Pattern.compile("[^a-zA-Z0-9]+");
+    private final Pattern patternMis = Pattern.compile("mis ");
 
     public NativeKeyListenerService(java.awt.TextArea clipboardTextArea) {
         this.clipboardTextArea = clipboardTextArea;
@@ -49,36 +48,29 @@ public class NativeKeyListenerService implements NativeKeyListener {
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent nke) {
-        int key = nke.getRawCode();
-
-        ctrl_key = key == 162 || key == 163; // either LCTRL (162) or RCTRL (163)
-
-//        System.out.println("nativeKeyPressed." + key + "." + ctrl_key);
-//        if (!isAlphabet(key)) {
-//            key_pressed = key;
-//        }
+        // not being used for now.
     }
 
     @Override
     public void nativeKeyReleased(NativeKeyEvent nke) {
         // 67 -> C
-        // 162 -> Lctrl
-        // 163 -> Rctrl
         int key_code = nke.getRawCode();
+        int modifier = nke.getModifiers();
 
-        if (key_code == 162 || key_code == 163) {
-            ctrl_key = false;
-        }
-
-//        System.out.println("nativeKeyReleased." + allowClip + "." + key_code + "." + ctrl_key);
         // is "C" key released ? then check if Lctrl/Rctrl is pressed or not ?
-//        if (allowClip && key_code == 67 && (key_pressed == 162 || key_pressed == 163)) {
-        if (allowClip && key_code == 67 && ctrl_key) {
+        if (allowClip && (modifier == NativeKeyEvent.CTRL_L_MASK || modifier == NativeKeyEvent.CTRL_R_MASK) && key_code == 67) {
             String clip = getClipboard();
+
             if (clip.trim().indexOf("mis ") == 0) { // must be in start
-                clip = clip.replaceAll("[^a-zA-Z0-9]+", " ").trim();
-                clip = clip.replaceFirst("mis ", "");
+                clip = patternSpecialChars.matcher(clip).replaceAll(" ").trim();
+                clip = patternMis.matcher(clip).replaceFirst("");
+
                 setClipboard(clip);
+
+                if (maintainClipboard) {
+                    prependText(clip + "\n\n");
+                }
+            } else if (maintainClipboard) {
                 prependText(clip + "\n\n");
             }
         } else if (allowCursor && isAlphabet(key_code)) {
@@ -130,13 +122,7 @@ public class NativeKeyListenerService implements NativeKeyListener {
     }
 
     public void maintainClipboardHistory(boolean enabled) {
-        if (enabled) {
-            flavorListenerService = new FlavorListenerService();
-            Toolkit.getDefaultToolkit().getSystemClipboard().addFlavorListener(flavorListenerService);
-        } else {
-            Toolkit.getDefaultToolkit().getSystemClipboard().removeFlavorListener(flavorListenerService);
-            flavorListenerService = null;
-        }
+        maintainClipboard = enabled;
     }
 
     // ---------------- PRIVATE METHODS:
@@ -182,16 +168,5 @@ public class NativeKeyListenerService implements NativeKeyListener {
 //        return CHAR >= 65 && CHAR <= 90;
         //    Pattern.matches("[A-Z]", KEY)
         //    String newClip = Pattern.compile("[^a-zA-Z0-9]+").matcher(clip).replaceAll(" ");
-    }
-
-    // ---------------- CLIPBOARD LISTENER
-    public class FlavorListenerService implements FlavorListener {
-
-        @Override
-        public void flavorsChanged(FlavorEvent e) {
-            String a = getClipboard();
-            System.out.println(a);
-            prependText(a + "\n\n");
-        }
     }
 }
