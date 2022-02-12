@@ -8,6 +8,8 @@ import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.FlavorEvent;
+import java.awt.datatransfer.FlavorListener;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
@@ -31,6 +33,7 @@ public class NativeKeyListenerService implements NativeKeyListener {
     private boolean allowClip, allowCursor;
     private final java.awt.TextArea clipboardTextArea;
     private Robot robot;
+    private FlavorListenerService flavorListenerService;
 
     public NativeKeyListenerService(java.awt.TextArea clipboardTextArea) {
         this.clipboardTextArea = clipboardTextArea;
@@ -65,7 +68,7 @@ public class NativeKeyListenerService implements NativeKeyListener {
                 clip = clip.replaceAll("[^a-zA-Z0-9]+", " ").trim();
                 clip = clip.replaceFirst("mis ", "");
                 setClipboard(clip);
-                prependText("- " + clip + "\n\n");
+                prependText(clip + "\n\n");
             }
         } else if (allowCursor && isAlphabet(key_code)) {
             {
@@ -115,6 +118,16 @@ public class NativeKeyListenerService implements NativeKeyListener {
         manageKeyListenerRegistration();
     }
 
+    public void maintainClipboardHistory(boolean enabled) {
+        if (enabled) {
+            flavorListenerService = new FlavorListenerService();
+            Toolkit.getDefaultToolkit().getSystemClipboard().addFlavorListener(flavorListenerService);
+        } else {
+            Toolkit.getDefaultToolkit().getSystemClipboard().removeFlavorListener(flavorListenerService);
+            flavorListenerService = null;
+        }
+    }
+
     // ---------------- PRIVATE METHODS:
     private void manageKeyListenerRegistration() {
         if ((allowCursor || allowClip) && !GlobalScreen.isNativeHookRegistered()) {
@@ -158,5 +171,16 @@ public class NativeKeyListenerService implements NativeKeyListener {
 //        return CHAR >= 65 && CHAR <= 90;
         //    Pattern.matches("[A-Z]", KEY)
         //    String newClip = Pattern.compile("[^a-zA-Z0-9]+").matcher(clip).replaceAll(" ");
+    }
+
+    // ---------------- CLIPBOARD LISTENER
+    public class FlavorListenerService implements FlavorListener {
+
+        @Override
+        public void flavorsChanged(FlavorEvent e) {
+            String a = getClipboard();
+            System.out.println(a);
+            prependText(a + "\n\n");
+        }
     }
 }
