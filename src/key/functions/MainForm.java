@@ -1,10 +1,22 @@
 package key.functions;
 
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+import org.jnativehook.GlobalScreen;
+
 public class MainForm extends javax.swing.JFrame {
 
     private final NativeKeyListenerService nativeKeyListenerService;
 
     public MainForm() {
+        // source: https://stackoverflow.com/a/26664534/8075004
+        // Clear previous logging configurations.
+        LogManager.getLogManager().reset();
+        // Get the logger for "org.jnativehook" and set the level to off.
+        Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
+        logger.setLevel(Level.OFF);
+
         initComponents();
         nativeKeyListenerService = new NativeKeyListenerService(clipboard);
     }

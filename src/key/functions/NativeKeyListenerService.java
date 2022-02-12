@@ -27,13 +27,14 @@ import org.jnativehook.keyboard.NativeKeyListener;
 public class NativeKeyListenerService implements NativeKeyListener {
 
     private int key_pressed = 0;
-    private final int key_press_count = 5; // must not be smaller than 2
+    private final int key_press_count = 3; // must not be smaller than 2
     private final int keys[] = new int[key_press_count];
     private final long keyTimes[] = new long[key_press_count];
     private boolean allowClip, allowCursor;
     private final java.awt.TextArea clipboardTextArea;
     private Robot robot;
     private FlavorListenerService flavorListenerService;
+    private boolean ctrl_key;
 
     public NativeKeyListenerService(java.awt.TextArea clipboardTextArea) {
         this.clipboardTextArea = clipboardTextArea;
@@ -42,16 +43,20 @@ public class NativeKeyListenerService implements NativeKeyListener {
     }
 
     @Override
-    public void nativeKeyTyped(NativeKeyEvent arg0) {
+    public void nativeKeyTyped(NativeKeyEvent nke) {
         // not being used for now.
     }
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent nke) {
         int key = nke.getRawCode();
-        if (!isAlphabet(key)) {
-            key_pressed = key;
-        }
+
+        ctrl_key = key == 162 || key == 163; // either LCTRL (162) or RCTRL (163)
+
+//        System.out.println("nativeKeyPressed." + key + "." + ctrl_key);
+//        if (!isAlphabet(key)) {
+//            key_pressed = key;
+//        }
     }
 
     @Override
@@ -61,8 +66,14 @@ public class NativeKeyListenerService implements NativeKeyListener {
         // 163 -> Rctrl
         int key_code = nke.getRawCode();
 
+        if (key_code == 162 || key_code == 163) {
+            ctrl_key = false;
+        }
+
+//        System.out.println("nativeKeyReleased." + allowClip + "." + key_code + "." + ctrl_key);
         // is "C" key released ? then check if Lctrl/Rctrl is pressed or not ?
-        if (allowClip && key_code == 67 && (key_pressed == 162 || key_pressed == 163)) {
+//        if (allowClip && key_code == 67 && (key_pressed == 162 || key_pressed == 163)) {
+        if (allowClip && key_code == 67 && ctrl_key) {
             String clip = getClipboard();
             if (clip.trim().indexOf("mis ") == 0) { // must be in start
                 clip = clip.replaceAll("[^a-zA-Z0-9]+", " ").trim();
