@@ -8,12 +8,11 @@ import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.FlavorEvent;
-import java.awt.datatransfer.FlavorListener;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.regex.Pattern;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
@@ -55,10 +54,14 @@ public class NativeKeyListenerService implements NativeKeyListener {
     public void nativeKeyReleased(NativeKeyEvent nke) {
         // 67 -> C
         int key_code = nke.getRawCode();
-        int modifier = nke.getModifiers();
+        final int modifier = nke.getModifiers();
 
         // is "C" key released ? then check if Lctrl/Rctrl is pressed or not ?
         if (allowClip && (modifier == NativeKeyEvent.CTRL_L_MASK || modifier == NativeKeyEvent.CTRL_R_MASK) && key_code == 67) {
+            new Thread(() -> {
+                System.out.println("inside" + (new Random().nextInt(99 - 10) + 10));
+            }).start();
+
             String clip = getClipboard();
 
             if (clip.trim().indexOf("mis ") == 0) { // must be in start
@@ -165,8 +168,5 @@ public class NativeKeyListenerService implements NativeKeyListener {
     // ---------------- PRIVATE STATIC METHODS:
     private static boolean isAlphabet(int char_code) {
         return char_code > 64 && char_code < 91;
-//        return CHAR >= 65 && CHAR <= 90;
-        //    Pattern.matches("[A-Z]", KEY)
-        //    String newClip = Pattern.compile("[^a-zA-Z0-9]+").matcher(clip).replaceAll(" ");
     }
 }
