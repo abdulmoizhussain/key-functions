@@ -4,16 +4,11 @@
  */
 package key.functions;
 
-import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.Toolkit;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Random;
 import java.util.regex.Pattern;
+import javax.swing.JOptionPane;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -25,12 +20,12 @@ import org.jnativehook.keyboard.NativeKeyListener;
  */
 public class NativeKeyListenerService implements NativeKeyListener {
 
-    private final int key_press_count = 5; // must not be smaller than 2
+    private final int key_press_count = 3; // must not be smaller than 2
     private final int key_press_last_index = key_press_count - 1;
     private final long keyTimes[] = new long[key_press_count];
     private final Pattern patternSpecialChars = Pattern.compile("[^a-zA-Z0-9]+");
     private final Pattern patternMis = Pattern.compile("mis ");
-    private final Robot robot = createRobot();
+    private final Robot robot = Utils.createRobot();
     private final java.awt.TextArea clipboardTextArea;
     private boolean allowClip, allowCursor, maintainClipboard;
 
@@ -59,14 +54,14 @@ public class NativeKeyListenerService implements NativeKeyListener {
             try {
                 GlobalScreen.registerNativeHook();
             } catch (NativeHookException e) {
-                System.out.println(e.getMessage());
+                JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
             GlobalScreen.addNativeKeyListener(this);
         } else if ((!allowCursor && !allowClip) && GlobalScreen.isNativeHookRegistered()) {
             try {
                 GlobalScreen.unregisterNativeHook();
             } catch (NativeHookException e) {
-                System.out.println(e.getMessage());
+                JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
             GlobalScreen.removeNativeKeyListener(this);
         }
@@ -82,30 +77,41 @@ public class NativeKeyListenerService implements NativeKeyListener {
         // not being used for now.
     }
 
+    private static boolean ctrl_c_is_pressed(int key_code, int modifier) {
+        // is "C" key released ? then check if Lctrl/Rctrl is pressed or not ?
+        // 67 -> C
+        return key_code == 67 && (modifier == NativeKeyEvent.CTRL_L_MASK || modifier == NativeKeyEvent.CTRL_R_MASK);
+    }
+
     @Override
     public void nativeKeyReleased(NativeKeyEvent nke) {
-        // 67 -> C
+
         int key_code = nke.getRawCode();
-        final int modifier = nke.getModifiers();
+        int modifier = nke.getModifiers();
 
-        // is "C" key released ? then check if Lctrl/Rctrl is pressed or not ?
-        if (allowClip && (modifier == NativeKeyEvent.CTRL_L_MASK || modifier == NativeKeyEvent.CTRL_R_MASK) && key_code == 67) {
-            System.out.println("inside" + (new Random().nextInt(99 - 10) + 10));
-            String clip = getClipboard();
+        if (ctrl_c_is_pressed(key_code, modifier)) {
+            if (allowClip) {
+                String clip = Utils.getClipboard();
+                if (clip.indexOf("mis ") == 0) { // "mis " must be in start
+                    String clipTrimmed = patternSpecialChars.matcher(clip).replaceAll(" ");
+                    clipTrimmed = clipTrimmed.substring(4).trim();
 
-            if (clip.trim().indexOf("mis ") == 0) { // must be in start
-                clip = patternSpecialChars.matcher(clip).replaceAll(" ").trim();
-                clip = patternMis.matcher(clip).replaceFirst("");
+                    setClipboard(clipTrimmed);
 
-                setClipboard(clip);
-
-                if (maintainClipboard) {
-                    prependText(clip + "\n\n");
+                    if (maintainClipboard && !clipTrimmed.isEmpty()) {
+                        prependText(clipTrimmed + "\n\n");
+                    }
+                } else if (maintainClipboard) {
+                    if (!clip.isEmpty()) {
+                        prependText(clip + "\n\n");
+                    }
                 }
             } else if (maintainClipboard) {
-                prependText(clip + "\n\n");
+                String clip = Utils.getClipboard();
+                if (!clip.isEmpty()) {
+                    prependText(clip + "\n\n");
+                }
             }
-//        } else if (allowCursor && Utils.isAlphabet(key_code)) {
         } else if (allowCursor) {
             // match occurence of same character codes with length of keys
 //            String keys_str = "";
@@ -133,23 +139,6 @@ public class NativeKeyListenerService implements NativeKeyListener {
             if ((sum / key_press_last_index) < 300) {
                 robot.mouseMove(0, 0);
             }
-        }
-    }
-
-    private static Robot createRobot() {
-        try {
-            return new Robot();
-        } catch (AWTException e) {
-            System.out.println(e.getMessage());
-            return null;
-        }
-    }
-
-    private String getClipboard() {
-        try {
-            return (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
-        } catch (UnsupportedFlavorException | IOException e) {
-            return "";
         }
     }
 
