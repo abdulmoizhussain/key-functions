@@ -25,7 +25,6 @@ import org.jnativehook.keyboard.NativeKeyListener;
  */
 public class NativeKeyListenerService implements NativeKeyListener {
 
-    private boolean allowClip, allowCursor;
     private final int key_press_count = 3; // must not be smaller than 2
     private final int keys[] = Utils.arrayFill(key_press_count, 0);
     private final long keyTimes[] = Utils.arrayFill(key_press_count, (long) 0);
@@ -33,8 +32,7 @@ public class NativeKeyListenerService implements NativeKeyListener {
     private final Pattern patternMis = Pattern.compile("mis ");
     private final Robot robot = createRobot();
     private final java.awt.TextArea clipboardTextArea;
-
-    private boolean maintainClipboard;
+    private boolean allowClip, allowCursor, maintainClipboard;
 
     public NativeKeyListenerService(java.awt.TextArea clipboardTextArea) {
         this.clipboardTextArea = clipboardTextArea;

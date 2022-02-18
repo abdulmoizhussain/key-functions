@@ -5,18 +5,17 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import org.jnativehook.GlobalScreen;
 
-public class MainForm extends javax.swing.JFrame {
+public class KeyFunctionsMainForm extends javax.swing.JFrame {
 
     private final NativeKeyListenerService nativeKeyListenerService;
 
-    public MainForm() {
+    public KeyFunctionsMainForm() {
         // source: https://stackoverflow.com/a/26664534/8075004
         // Clear previous logging configurations.
         LogManager.getLogManager().reset();
         // Get the logger for "org.jnativehook" and set the level to off.
         Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
         logger.setLevel(Level.OFF);
-        
         logger.setUseParentHandlers(false);
 
         initComponents();
@@ -33,6 +32,7 @@ public class MainForm extends javax.swing.JFrame {
         javax.swing.JCheckBox jCheckBox2 = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(new java.awt.Dimension(550, 400));
 
         clipboard.setEditable(false);
 
@@ -82,8 +82,8 @@ public class MainForm extends javax.swing.JFrame {
                 .addComponent(jCheckBox2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jCheckBoxMaintainClipboard)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(clipboard, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(clipboard, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -111,10 +111,12 @@ public class MainForm extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(KeyFunctionsMainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         java.awt.EventQueue.invokeLater(() -> {
-            new MainForm().setVisible(true);
+            KeyFunctionsMainForm mainForm = new KeyFunctionsMainForm();
+            mainForm.setTitle("Key Functions");
+            mainForm.setVisible(true);
         });
     }
 
