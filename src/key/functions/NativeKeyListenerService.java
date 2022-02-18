@@ -24,7 +24,6 @@ public class NativeKeyListenerService implements NativeKeyListener {
     private final int key_press_last_index = key_press_count - 1;
     private final long keyTimes[] = new long[key_press_count];
     private final Pattern patternSpecialChars = Pattern.compile("[^a-zA-Z0-9]+");
-    private final Pattern patternMis = Pattern.compile("mis ");
     private final Robot robot = Utils.createRobot();
     private final java.awt.TextArea clipboardTextArea;
     private boolean allowClip, allowCursor, maintainClipboard;
