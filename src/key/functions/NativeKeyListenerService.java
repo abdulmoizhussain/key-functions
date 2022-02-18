@@ -25,19 +25,53 @@ import org.jnativehook.keyboard.NativeKeyListener;
  */
 public class NativeKeyListenerService implements NativeKeyListener {
 
+    private boolean allowClip, allowCursor;
     private final int key_press_count = 3; // must not be smaller than 2
-    private final int keys[] = new int[key_press_count];
-    private final long keyTimes[] = new long[key_press_count];
-    private final java.awt.TextArea clipboardTextArea;
-    private boolean maintainClipboard;
-    private Robot robot = createRobot();
+    private final int keys[] = Utils.arrayFill(key_press_count, 0);
+    private final long keyTimes[] = Utils.arrayFill(key_press_count, (long) 0);
     private final Pattern patternSpecialChars = Pattern.compile("[^a-zA-Z0-9]+");
     private final Pattern patternMis = Pattern.compile("mis ");
+    private final Robot robot = createRobot();
+    private final java.awt.TextArea clipboardTextArea;
+
+    private boolean maintainClipboard;
 
     public NativeKeyListenerService(java.awt.TextArea clipboardTextArea) {
         this.clipboardTextArea = clipboardTextArea;
-        Arrays.fill(keys, 0);
-        Arrays.fill(keyTimes, 0);
+    }
+
+    // ---------------- PUBLIC METHODS:
+    public void setAllowClip(boolean allowClip) {
+        this.allowClip = allowClip;
+        manageKeyListenerRegistration();
+    }
+
+    public void setAllowCursor(boolean allowCursor) {
+        this.allowCursor = allowCursor;
+        manageKeyListenerRegistration();
+    }
+
+    public void maintainClipboardHistory(boolean enabled) {
+        maintainClipboard = enabled;
+    }
+
+    // ---------------- PRIVATE METHODS:
+    private void manageKeyListenerRegistration() {
+        if ((allowCursor || allowClip) && !GlobalScreen.isNativeHookRegistered()) {
+            try {
+                GlobalScreen.registerNativeHook();
+            } catch (NativeHookException e) {
+                System.out.println(e.getMessage());
+            }
+            GlobalScreen.addNativeKeyListener(this);
+        } else if ((!allowCursor && !allowClip) && GlobalScreen.isNativeHookRegistered()) {
+            try {
+                GlobalScreen.unregisterNativeHook();
+            } catch (NativeHookException e) {
+                System.out.println(e.getMessage());
+            }
+            GlobalScreen.removeNativeKeyListener(this);
+        }
     }
 
     @Override
@@ -76,7 +110,7 @@ public class NativeKeyListenerService implements NativeKeyListener {
             } else if (maintainClipboard) {
                 prependText(clip + "\n\n");
             }
-        } else if (allowCursor && isAlphabet(key_code)) {
+        } else if (allowCursor && Utils.isAlphabet(key_code)) {
             {
                 // match occurence of same character codes with length of keys
                 String keys_str = "";
@@ -136,10 +170,5 @@ public class NativeKeyListenerService implements NativeKeyListener {
 
     private void prependText(String str) {
         clipboardTextArea.setText(str + clipboardTextArea.getText());
-    }
-
-    // ---------------- PRIVATE STATIC METHODS:
-    private static boolean isAlphabet(int char_code) {
-        return char_code > 64 && char_code < 91;
     }
 }

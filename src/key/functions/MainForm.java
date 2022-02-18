@@ -7,7 +7,7 @@ import org.jnativehook.GlobalScreen;
 
 public class MainForm extends javax.swing.JFrame {
 
-    private final AppController nativeKeyListenerService;
+    private final NativeKeyListenerService nativeKeyListenerService;
 
     public MainForm() {
         // source: https://stackoverflow.com/a/26664534/8075004
@@ -16,9 +16,11 @@ public class MainForm extends javax.swing.JFrame {
         // Get the logger for "org.jnativehook" and set the level to off.
         Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
         logger.setLevel(Level.OFF);
+        
+        logger.setUseParentHandlers(false);
 
         initComponents();
-        nativeKeyListenerService = new AppController(clipboard);
+        nativeKeyListenerService = new NativeKeyListenerService(clipboard);
     }
 
     @SuppressWarnings("unchecked")
