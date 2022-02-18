@@ -25,9 +25,9 @@ import org.jnativehook.keyboard.NativeKeyListener;
  */
 public class NativeKeyListenerService implements NativeKeyListener {
 
-    private final int key_press_count = 3; // must not be smaller than 2
-    private final int keys[] = Utils.arrayFill(key_press_count, 0);
-    private final long keyTimes[] = Utils.arrayFill(key_press_count, (long) 0);
+    private final int key_press_count = 5; // must not be smaller than 2
+    private final int key_press_last_index = key_press_count - 1;
+    private final long keyTimes[] = new long[key_press_count];
     private final Pattern patternSpecialChars = Pattern.compile("[^a-zA-Z0-9]+");
     private final Pattern patternMis = Pattern.compile("mis ");
     private final Robot robot = createRobot();
@@ -90,10 +90,7 @@ public class NativeKeyListenerService implements NativeKeyListener {
 
         // is "C" key released ? then check if Lctrl/Rctrl is pressed or not ?
         if (allowClip && (modifier == NativeKeyEvent.CTRL_L_MASK || modifier == NativeKeyEvent.CTRL_R_MASK) && key_code == 67) {
-            new Thread(() -> {
-                System.out.println("inside" + (new Random().nextInt(99 - 10) + 10));
-            }).start();
-
+            System.out.println("inside" + (new Random().nextInt(99 - 10) + 10));
             String clip = getClipboard();
 
             if (clip.trim().indexOf("mis ") == 0) { // must be in start
@@ -108,38 +105,32 @@ public class NativeKeyListenerService implements NativeKeyListener {
             } else if (maintainClipboard) {
                 prependText(clip + "\n\n");
             }
-        } else if (allowCursor && Utils.isAlphabet(key_code)) {
-            {
-                // match occurence of same character codes with length of keys
-                String keys_str = "";
-                for (int i = 0; i < keys.length - 1; i++) {
-                    keys[i] = keys[i + 1];
-                    keys_str += Integer.toString(keys[i]);
-                }
-                keys[keys.length - 1] = key_code;
-                keys_str += Integer.toString(key_code);
-//      e.g regex:  "(23){5,5}"
-//      e.g str to match: 322332332323232323
-                if (Pattern.matches("(" + Integer.toString(key_code) + "){" + keys.length + "," + keys.length + "}", keys_str)) {
-                    return;
-                }
-            }
+//        } else if (allowCursor && Utils.isAlphabet(key_code)) {
+        } else if (allowCursor) {
+            // match occurence of same character codes with length of keys
+//            String keys_str = "";
+//            for (int i = 0; i < keys.length - 1; i++) {
+//                keys[i] = keys[i + 1];
+//                keys_str += Integer.toString(keys[i]);
+//            }
+//            keys[keys.length - 1] = key_code;
+//            keys_str += Integer.toString(key_code);
+            // e.g regex:  "(23){5,5}"
+            // e.g str to match: 322332332323232323
+//            if (Pattern.matches("(" + Integer.toString(key_code) + "){" + keys.length + "," + keys.length + "}", keys_str)) {
+//                return;
+//            }
 
-            for (int i = 0; i < keyTimes.length - 1; i++) {
+            for (int i = 0; i < key_press_last_index; i++) {
                 keyTimes[i] = keyTimes[i + 1];
             }
-            keyTimes[keyTimes.length - 1] = System.currentTimeMillis();
+            keyTimes[key_press_last_index] = System.currentTimeMillis();
 
-            long[] diff = new long[keyTimes.length - 1];
-            Arrays.fill(diff, 0);
-            for (int i = 0; i < diff.length; i++) {
-                diff[i] = keyTimes[i + 1] - keyTimes[i];
-            }
             long sum = 0;
-            for (int i = 0; i < diff.length; i++) {
-                sum += diff[i];
+            for (int i = 0; i < key_press_last_index; i++) {
+                sum += (keyTimes[i + 1] - keyTimes[i]);
             }
-            if (sum / diff.length < 300) {
+            if ((sum / key_press_last_index) < 300) {
                 robot.mouseMove(0, 0);
             }
         }
