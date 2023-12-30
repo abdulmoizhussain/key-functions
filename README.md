@@ -3,7 +3,7 @@
 
 ## Executables are in: [Executables/](https://github.com/abdulmoizhussain/key-functions/tree/master/Executables)
 
-### Antiviruses may detect it as a virus, because it is developed with a [key-logger (recorder)](https://en.wikipedia.org/wiki/Keystroke_logging) mechanism but surely does not log (record) any key, so you can whitelist it.
+### Antiviruses may detect it as a virus, because it is developed with a [key-logger (recorder)](https://en.wikipedia.org/wiki/Keystroke_logging) mechanism but surely does not log (record) any keys, so you can whitelist it.
 
 ## Usage:
 ### Execute ***`key-functions.exe`*** OR ***`key-functions.jar`***
